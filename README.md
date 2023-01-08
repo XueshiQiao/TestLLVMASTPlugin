@@ -4,9 +4,18 @@
 
 ## Run with plugin
 
+macOS
 ```bash
 clang -fplugin=./cmake-build-debug/TestLLVM01Lib.dylib ./test/test_main.cpp -v
 ```
+
+Ubuntu
+clang-15 is installed via `sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"`
+```bash
+clang-15 -fplugin=./build/TestLLVM01Lib.so ./test/test_main.cpp -lstdc++
+```
+
+
 
 The plugin works alright, but there's an error in macOS, maybe something wrong with the `syslibroot` 
 

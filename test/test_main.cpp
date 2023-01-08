@@ -1,7 +1,7 @@
 //
 // Created by XueshiQiao on 2023/1/8.
 //
-//#include <iostream>
+#include <iostream>
 
 int Func1() {
   return 0;
@@ -9,5 +9,6 @@ int Func1() {
 
 int main() {
   int ret = Func1();
+  std::cout << "ret: " << ret << std::endl;
   return 0;
 }

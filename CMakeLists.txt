@@ -1,12 +1,22 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.16)
 project(TestLLVM01)
 
 set(CMAKE_CXX_STANDARD 17)
 
 # llvm is installed via brew, so it's in /opt/homebrew/opt/llvm
 # 这个也可以通过 -DLLVM_DIR=XX 的方式传给 cmake 命令
-set(LLVM_DIR "/opt/homebrew/opt/llvm/lib/cmake/llvm/")
-set(Clang_DIR "/opt/homebrew/opt/llvm/lib/cmake/clang/")
+
+if (APPLE)
+  set(LLVM_DIR "/opt/homebrew/opt/llvm/lib/cmake/llvm/")
+  set(Clang_DIR "/opt/homebrew/opt/llvm/lib/cmake/clang/")
+endif()
+
+if (LINUX)
+  set(LLVM_DIR "/usr/lib/llvm-15/lib/cmake/llvm")
+  set(Clang_DIR "//usr/lib/llvm-15/lib/cmake/clang")
+endif(Linux)
+
+
 
 ###################################### LLVM #############################################################
 # Find LLVM package，resolving the include path and library
@@ -61,7 +71,7 @@ add_llvm_library(TestLLVM01Lib
         MODULE
         ${TEST_LLVM_LIB_SOURCES}
         LINK_COMPONENTS
-        Support Analysis
+        PLUGIN_TOOL clang
         )
 
 ## add a executable target which depends on the library TestLLVM01Lib
