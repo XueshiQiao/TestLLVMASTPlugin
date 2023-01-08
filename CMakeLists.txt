@@ -16,8 +16,6 @@ if (LINUX)
   set(Clang_DIR "//usr/lib/llvm-15/lib/cmake/clang")
 endif(Linux)
 
-
-
 ###################################### LLVM #############################################################
 # Find LLVM package，resolving the include path and library
 find_package(LLVM REQUIRED CONFIG)

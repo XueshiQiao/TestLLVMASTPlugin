@@ -1,21 +1,26 @@
 # TestLLVMASTPlugin
 
-## Open/Build With CLion
+This project is my attempt to explore LLVM world, and create a plugin for it just for fun.
+It doesn't do any help to me in real life for now. 
 
-## Run with plugin
+## Open/Build the sample LLVM plugin
+* CLion / VSCode 
+* CMake
 
-macOS
+## Compile other project with the plugin
+
+### macOS
+
+LLVM(13) is installed via homebrew, maybe I should build one.
 ```bash
 clang -fplugin=./cmake-build-debug/TestLLVM01Lib.dylib ./test/test_main.cpp -v
 ```
 
-Ubuntu
-clang-15 is installed via `sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"`
+### Ubuntu
+llvm 15 is installed via `sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"`
 ```bash
 clang-15 -fplugin=./build/TestLLVM01Lib.so ./test/test_main.cpp -lstdc++
 ```
-
-
 
 The plugin works alright, but there's an error in macOS, maybe something wrong with the `syslibroot` 
 
