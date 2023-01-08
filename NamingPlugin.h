@@ -31,8 +31,8 @@ public:
           CI.getDiagnostics().Report(func_decl->getLocation(),
                                      CI.getDiagnostics().getCustomDiagID(
                                          DiagnosticsEngine::Warning,
-                                         "[[Function name should start with lower "
-                                         "case letter]]"));
+                                         "Function name should start with lower "
+                                         "case letter"));
         }
       }
     }
