@@ -26,7 +26,7 @@ public:
       if (const FunctionDecl *func_decl = dyn_cast<FunctionDecl>(decl)) {
         std::string name = func_decl->getNameInfo().getName().getAsString();
         char &first = name.at(0);
-        std::cout << "========== func_name: " << name << std::endl;
+        std::cout << "====func_name: " << name << std::endl;
         if (!(first >= 'a' && first <= 'z')) {
           CI.getDiagnostics().Report(func_decl->getLocation(),
                                      CI.getDiagnostics().getCustomDiagID(

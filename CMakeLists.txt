@@ -7,14 +7,18 @@ set(CMAKE_CXX_STANDARD 17)
 # 这个也可以通过 -DLLVM_DIR=XX 的方式传给 cmake 命令
 
 if (APPLE)
-  set(LLVM_DIR "/opt/homebrew/opt/llvm/lib/cmake/llvm/")
-  set(Clang_DIR "/opt/homebrew/opt/llvm/lib/cmake/clang/")
+#
+#   set(LLVM_DIR "/opt/homebrew/opt/llvm/lib/cmake/llvm/")
+#   set(Clang_DIR "/opt/homebrew/opt/llvm/lib/cmake/clang/")
+# /opt/homebrew/opt/llvm@14
+  set(LLVM_DIR "/opt/homebrew/opt/llvm@14/lib/cmake/llvm/")
+  set(Clang_DIR "/opt/homebrew/opt/llvm@14/lib/cmake/clang/")
 endif()
 
 if (LINUX)
   set(LLVM_DIR "/usr/lib/llvm-15/lib/cmake/llvm")
   set(Clang_DIR "//usr/lib/llvm-15/lib/cmake/clang")
-endif(Linux)
+endif(LINUX)
 
 ###################################### LLVM #############################################################
 # Find LLVM package，resolving the include path and library
