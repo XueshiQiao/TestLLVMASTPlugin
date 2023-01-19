@@ -18,8 +18,14 @@ struct OptionalGuardCallback : public ast_matchers::MatchFinder::MatchCallback {
   void run(const ast_matchers::MatchFinder::MatchResult &Result) override {
     // std::cout << "--------------name:" << "=============== match result callback get called" << std::endl;;
     if (const auto *decl = Result.Nodes.getNodeAs<FunctionDecl>("func_decl")) {
+
       // std::cout << "====var_decl: " << decl->getNameAsString() << std::endl;
       std::cout << "--------------name:" <<decl->getNameAsString() << std::endl;;
+    }
+    {
+      // auto *decl = Result.Nodes.getNodeAs<CXXMemberCallExpr>("var");
+      // decl->getSub;
+
     }
   }
 };
@@ -40,8 +46,28 @@ OptionalGuardPluginAction::CreateASTConsumer(clang::CompilerInstance &CI,
       traverse(clang::TK_IgnoreUnlessSpelledInSource,
                              buildMatcher()), match_result_callback_.get());
 
-  // ast_finder_->addMatcher(functionDecl(hasName("bad_case")).bind("func_decl"), match_result_callback_.get());
+  // functionDecl(hasDescendant(
+  //     varDecl(hasDescendant(cxxDependentScopeMemberExpr(hasMemberName("value")),
+  //                           has))
+          // .bind("var")));
 
+  functionDecl(hasDescendant(varDecl(hasDescendant(cxxDependentScopeMemberExpr(hasMemberName("value"), hasAncestor(ifStmt())).bind("var")))));
+
+  // functionDecl(hasDescendant(varDecl(hasType(asString("std::optional<int>")),
+  //                                    hasDescendant(cxxDependent)))
+  //                            ));
+
+  // 1. 没有 if
+  // version 1& 2
+  functionDecl(hasDescendant(cxxMemberCallExpr(on(declRefExpr(hasType(asString("std::optional<int>")))), unless(hasAncestor(ifStmt())))));
+  functionDecl(hasDescendant(cxxMemberCallExpr(on(declRefExpr(hasType(asString("std::optional<int>")))), unless(hasAncestor(ifStmt())))));
+  // version 3.
+  functionDecl(hasDescendant(cxxMemberCallExpr(on(declRefExpr(hasType(recordDecl(matchesName("std::optional"))))), unless(hasAncestor(ifStmt())))));
+  // version 4
+  // ref: https://clang.llvm.org/docs/LibASTMatchersReference.html
+  functionDecl(hasDescendant(cxxMemberCallExpr(on(declRefExpr(hasType(recordDecl(matchesName("std::optional"))))), callee(cxxMethodDecl(hasName("value"))), unless(hasAncestor(ifStmt()))).bind("call")));
+
+  // ast_finder_->addMatcher(functionDecl(hasName("bad_case")).bind("func_decl"), match_result_callback_.get());
   return ast_finder_->newASTConsumer();
 }
 

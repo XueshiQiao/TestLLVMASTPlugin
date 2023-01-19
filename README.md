@@ -54,17 +54,51 @@ $CXX -fsyntax-only -std=c++17 -fplugin=./build/OptionalGuard/OptionalGuardPlugin
 
 ```
 去掉  -fsyntax-only 之后，会报 链接错误，原因是前一步编译结果没出来
+
+## InstructionCountPass
+compile test file function_pass_test.cpp to LLVM .ll file  or bitcode file
+note: must use -O1 or upper
+```bash
+
+# use -S to emit a llvm .ll file
+clang -std=c++14 -O1 -emit-llvm ./test/function_pass_test.cpp -S -o function_pass_test.ll
+# use -c to emit a bitcode .bc file
+clang -std=c++14 -O1 -emit-llvm ./test/function_pass_test.cpp -c -o function_pass_test.bc
+
+```
+
+compile our pass as InstructionCountPass.dylib
+```bash
+cd build
+cmake --build .
+```
+
+run opt with custom pass
+```bash
+# using function_pass_test.cc works well too
+/opt/homebrew/opt/llvm@14/bin/opt --load-pass-plugin=/Users/joey/Documents/Code/TestLLVM01/build/InstructionCountPass/InstructionCountPass.dylib --passes="function(instruction-count)" -S -o - function_pass_test.ll
+```
+
+
+
 ## clang-query
 
 on macOS
 
 ```bash
 ## enter clang-query interaction env
-/opt/homebrew/opt/llvm@14/bin/clang-query test/option_test_main.cpp
+
+# genereate compile_commands.json file
+cd some_build_folder
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 .
+
+# -p sepecify the compile_commands.json file generated in preceding step
+/opt/homebrew/opt/llvm@14/bin/clang-query  test/option_test_main.cpp -p build/compile_commands.json
 
 ## set traversal mode & output the generated AST tree of matched nodes
 clang-query> set traversal IgnoreUnlessSpelledInSource
 clang-query> set output dump
+# clang-query> set bind-root false
 clang-query> match functionDecl(hasName("bad_case")).bind("bad_case_function")
 
 Match #1:
