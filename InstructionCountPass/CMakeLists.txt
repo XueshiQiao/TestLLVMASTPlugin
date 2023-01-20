@@ -17,7 +17,7 @@ endif()
 
 if (LINUX)
   set(LLVM_DIR "/usr/lib/llvm-15/lib/cmake/llvm")
-  set(Clang_DIR "//usr/lib/llvm-15/lib/cmake/clang")
+  set(Clang_DIR "/usr/lib/llvm-15/lib/cmake/clang")
 endif(LINUX)
 
 ###################################### LLVM #############################################################
@@ -46,8 +46,8 @@ endif()
 
 ################################## LLVM end ############################################
 
+#--------------------------------- InstructionCountPass --------------------------------------------
 set(INSTRUCTION_COUNT_PASS_SRC InstructionCountPass.h InstructionCountPass.cpp)
-
 add_llvm_pass_plugin(InstructionCountPass ${INSTRUCTION_COUNT_PASS_SRC})
 
 # add_llvm_library(OptionalGuardPlugin

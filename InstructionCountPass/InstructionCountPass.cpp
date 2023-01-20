@@ -21,7 +21,7 @@ namespace llvm {
 llvm::PreservedAnalyses
 InstructionCountPass::run(llvm::Function &F,
                           llvm::FunctionAnalysisManager &FAM) {
-  std::cout << "===============enter function (" << F.getName().str() << ")==============="
+    std::cout << "===============enter function (" << F.getName().str() << ")==============="
             << std::endl;
     int count = 0;
     // print F's all attributes
@@ -62,7 +62,7 @@ InstructionCountPass::run(llvm::Function &F,
     }
     std::cout << "------------Function: " << F.getName().str() << ", instruction count: " << count << std::endl;
     return llvm::PreservedAnalyses::none();
-  }
+}
 
 extern "C" ::llvm::PassPluginLibraryInfo LLVM_ATTRIBUTE_WEAK llvmGetPassPluginInfo() {
   return {
