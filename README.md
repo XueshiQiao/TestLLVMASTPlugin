@@ -79,7 +79,30 @@ run opt with custom pass
 /opt/homebrew/opt/llvm@14/bin/opt --load-pass-plugin=/Users/joey/Documents/Code/TestLLVM01/build/InstructionCountPass/InstructionCountPass.dylib --passes="function(instruction-count)" -S -o - function_pass_test.ll
 ```
 
+## AOPInjectionPass
+compile our pass as AOPInjectionPass.dylib
+```bash
+cd build
+cmake --build .
 
+# cd back to root folder
+
+# generate llvm IR
+clang -std=c++14 -emit-llvm ./test/function_pass_test.cpp -S -o function_pass_test.ll
+
+# run opt with custom pass AOPInjectionPass
+# input file: function_pass_test.ll
+# output file processed by custom pass: function_pass_test_after_pass.ll
+/opt/homebrew/opt/llvm@14/bin/opt --load-pass-plugin=/Users/joey/Documents/Code/TestLLVM01/build/AOPInjectionPass/AOPInjectionPass.dylib --passes="aop-injection" --disable-output -S function_pass_test.ll -o function_pass_test_after_pass.ll
+
+# compile ll file to object file
+llc -filetype=obj function_pass_test_after_pass.ll -o function_pass_test_after_pass.o
+# generate executable file with clang
+clang -lc++ function_pass_test_after_pass.o -o function_pass_test_after_pass
+
+# final step, let's run it:
+./function_pass_test_after_pass
+```
 
 ## clang-query
 
