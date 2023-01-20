@@ -126,6 +126,57 @@ hello3
 ```
 
 
+## AutoLoadAOPInjectionPassV2
+AutoLoadAOPInjectionPassV2 实现的基本的 AOP 功能，支持通过 attribute 注入函数调用
+
+```c++
+// AOPInjectionPointCut 表示该函数可以被其他函数注入进去
+// joined_point_cut:file 表示函数中包含 file 的将会在函数执行开始的时候注入调用 joinedpoint_file_related 函数
+// 还需要满足另外一个条件是需要带有 Injected annotate 的函数才会被注入
+__attribute__((annotate("AOPInjectionPointCut")))
+__attribute__((annotate("joined_point_cut:file")))
+void joinedpoint_file_related(char *func_name){
+  std::cout << "joinedpoint_file_related in " << func_name << std::endl;
+}
+
+// 函数中包含 file，且有 Injected annotation，因为会被注入 joinedpoint_file_related
+__attribute__((annotate("Injected"))) void file_read();
+void file_read() { std::cout << "file_read, should be injected." << std::endl; }
+
+//  >= C++11
+// [[clang::annotate("Injected")]] 是 C++11 之后的写法，也会被注入
+[[clang::annotate("Injected")]] void file_close(){
+    std::cout << "file_close, should be injected." << std::endl;
+}
+
+// 没有 Injected 属性，即便函数名中包含 file，也不会被注入
+void file_write(){
+    std::cout << "file_close, should be injected." << std::endl;
+}
+
+
+```
+
+How to play?
+
+```bash
+cd build/; cmake --build .; cd -
+
+clang -lc++ -std=c++11 -O3  -Xclang -fpass-plugin="/Users/joey/Documents/Code/TestLLVM01/build/AutoLoadAOPInjectionPassV2/AutoLoadAOPInjectionPassV2.dylib" ./test/input_auto_aop_pass_v2.cpp -o input_auto_aop_pass_v2
+
+./input_auto_aop_pass_v2
+
+joinedpoint_file_related in _Z9file_readv
+file_read, should be injected.
+joinedpoint_file_related in _Z10file_closev
+file_close, should be injected.
+file_write, should NOT be injected.
+joinedpoint_statistics in _Z18statistics_networkv
+statistics_network, should be injected.
+other func, should NOT be injected.
+```
+
+
 ## clang-query
 
 on macOS

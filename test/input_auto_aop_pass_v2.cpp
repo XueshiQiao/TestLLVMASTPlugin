@@ -17,7 +17,7 @@ void joinedpoint_statistics(char *func_name){
 __attribute__((annotate("Injected"))) void file_read();
 void file_read() { std::cout << "file_read, should be injected." << std::endl; }
 
-//  >= C++17
+//  >= C++11
 [[clang::annotate("Injected")]] void file_close(){
     std::cout << "file_close, should be injected." << std::endl;
 }
