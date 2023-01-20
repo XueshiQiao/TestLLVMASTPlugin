@@ -104,6 +104,28 @@ clang -lc++ function_pass_test_after_pass.o -o function_pass_test_after_pass
 ./function_pass_test_after_pass
 ```
 
+## AutoLoadAOPInjectionPass
+上面的 AOPInjectionPass 需要手动传入 --passes="aop-injection" 参数来启动该 pass，另外一种方式是默认加载，区别是需要通过 `PB.registerPipelineStartEPCallback()` 来注册 pass
+
+还有好处是，可以直接通过 clang 动态链接 pass plugin 的动态库：
+
+```bash
+clang -lc++ -std=c++14 -O3  -Xclang -fpass-plugin="/Users/joey/Documents/Code/TestLLVM01/build/AutoLoadAOPInjectionPass/AutoLoadAOPInjectionPass.dylib" ./test/function_pass_test.cpp -o function_pass_test
+
+# 然后直接执行即可：
+./function_pass_test
+
+1
+2
+my_aop_intercepter_Z5hellov
+hello
+my_aop_intercepter_Z6hello2v
+hello2
+my_aop_intercepter_Z6hello3v
+hello3
+```
+
+
 ## clang-query
 
 on macOS

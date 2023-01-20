@@ -1,4 +1,4 @@
-#include "AOPInjectionPass.h"
+#include "AutoLoadAOPInjectionPass.h"
 
 #include <iostream>
 #include <string>
@@ -7,23 +7,26 @@
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Passes/PassBuilder.h"
 
+using namespace llvm;
 
 namespace llvm {
 
-llvm::PreservedAnalyses AOPInjectionPass::run(llvm::Module &M,
+llvm::PreservedAnalyses AutoLoadAOPInjectionPass::run(llvm::Module &M,
                                               llvm::ModuleAnalysisManager &MAM) {
-  std::cout << "===============enter module (" << M.getName().str()
-            << ")===============" << std::endl;
+  std::cout << "Enter module (" << M.getName().str() << ")" << std::endl;
 
   std::set<Function *> functionsWithAnnotationString =
       GetAnnotatedFunctions(M, "AOPInjection");
-  RunAOPInjection(M, functionsWithAnnotationString);
-  return llvm::PreservedAnalyses::all();
+  if (functionsWithAnnotationString.empty()) {
+    return llvm::PreservedAnalyses::all();
+  }
+  return RunAOPInjection(M, functionsWithAnnotationString) ?
+            llvm::PreservedAnalyses::none() : llvm::PreservedAnalyses::all();
 }
 
 
 std::set<Function *>
-AOPInjectionPass::GetAnnotatedFunctions(const llvm::Module &M,
+AutoLoadAOPInjectionPass::GetAnnotatedFunctions(const llvm::Module &M,
                                         const std::string &AnnotationString) {
   std::set<Function *> functionsWithAnnotationString;
   const llvm::GlobalVariable* annotations = M.getNamedGlobal("llvm.global.annotations");
@@ -45,18 +48,25 @@ AOPInjectionPass::GetAnnotatedFunctions(const llvm::Module &M,
   return functionsWithAnnotationString;
 }
 
-void AOPInjectionPass::RunAOPInjection(llvm::Module &M, std::set<Function *> &functions) {
+bool AutoLoadAOPInjectionPass::RunAOPInjection(llvm::Module &M, std::set<Function *> &functions) {
   auto& context = M.getContext();
-  auto aop_func_type =
+  auto injected_func_type =
       FunctionType::get(Type::getInt32Ty(context),
                         {Type::getInt8PtrTy(context)}, /*IsVarArgs=*/false);
   FunctionCallee callee =
-      M.getOrInsertFunction("my_aop_intercepter", aop_func_type);
+      M.getOrInsertFunction("my_aop_intercepter", injected_func_type);
+  Function *func = M.getFunction("my_aop_intercepter");
+  if (!func) {
+    errs() << "Cannot find my_aop_intercepter function" << "\n";
+    return false;
+  }
 
+  bool isChanged = false;
   for (auto F : functions) {
     if (F->isDeclaration()) {
       continue;
     }
+    isChanged = true;
     // Get an IR builder. Sets the insertion point to the top of the function
     IRBuilder<> Builder(&*F->getEntryBlock().getFirstInsertionPt());
     // Inject a global variable that contains the function name
@@ -64,25 +74,34 @@ void AOPInjectionPass::RunAOPInjection(llvm::Module &M, std::set<Function *> &fu
     // pass the function name as a parameter to the function
     Builder.CreateCall(callee, {FuncName});
   }
+
+  return isChanged;
 }
 
-// register module pass
-extern "C" LLVM_ATTRIBUTE_WEAK
-::llvm::PassPluginLibraryInfo llvmGetPassPluginInfo() {
+extern "C" ::llvm::PassPluginLibraryInfo LLVM_ATTRIBUTE_WEAK llvmGetPassPluginInfo() {
   return {
-    LLVM_PLUGIN_API_VERSION, "AOPInjectionPass", "v0.1",
+    LLVM_PLUGIN_API_VERSION, "AutoLoadAOPInjectionPass", "v0.1",
         [](llvm::PassBuilder &PB) {
-          PB.registerPipelineParsingCallback(
-              [](llvm::StringRef Name, llvm::ModulePassManager &MPM,  // <<-- using ModulePassManager here
-                 llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
-                if (Name == "aop-injection") {
-                  MPM.addPass(AOPInjectionPass());
-                  return true;
-                }
-                return false;
-              });
-        }
+#if 0
+      PB.registerPipelineParsingCallback(
+        [](llvm::StringRef Name, llvm::ModulePassManager &MPM,
+            llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
+          if (Name == "instruction-count") {
+            MPM.addPass(AutoLoadAOPInjectionPass());
+            return true;
+          }
+          return false;
+        });
+#else
+      PB.registerPipelineStartEPCallback(
+        [](llvm::ModulePassManager &MPM, llvm::OptimizationLevel OL) {
+          if (OL.getSpeedupLevel() >= 2)
+            MPM.addPass(AutoLoadAOPInjectionPass());
+        });
+#endif
+    }
   };
 }
 
-}  // namespace llvm
+
+}
