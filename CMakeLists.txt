@@ -14,6 +14,7 @@ add_subdirectory(test)
 add_subdirectory(InstructionCountPass)
 add_subdirectory(AOPInjectionPass)
 add_subdirectory(AutoLoadAOPInjectionPass)
+add_subdirectory(AutoLoadAOPInjectionPassV2)
 
 # llvm is installed via brew, so it's in /opt/homebrew/opt/llvm
 # 这个也可以通过 -DLLVM_DIR=XX 的方式传给 cmake 命令
