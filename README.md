@@ -179,6 +179,8 @@ other func, should NOT be injected.
 
 ## clang-query
 
+[LibASTMatchersReference](https://clang.llvm.org/docs/LibASTMatchersReference.html)
+
 on macOS
 
 ```bash
@@ -221,3 +223,44 @@ FunctionDecl 0x1280debd8 </Users/joey/Documents/Code/TestLLVM01/test/option_test
 ```
 
 See: [Exploring Clang Tooling Part 2: Examining the Clang AST with clang-query](https://devblogs.microsoft.com/cppblog/exploring-clang-tooling-part-2-examining-the-clang-ast-with-clang-query/)
+
+### Examples of clang-query
+
+#### 1. Find bad calls share_from_this() from Constructor
+
+Code from test/input_shared_from_this_in_cons.cpp
+
+```c++
+class A : public std::enable_shared_from_this<A> {
+  public:
+  A() {
+    std::cout << "message from A::A()" << std::endl;
+    std::shared_ptr<A> p = shared_from_this();  // ❌ 🙅 crash here..
+    p->print();
+  }
+
+  void print() {
+    std::cout << "message from A::print()" << std::endl;
+  }
+};
+
+```
+
+clang-query statement
+```c++
+// single line:
+match cxxConstructorDecl(hasDescendant(cxxMemberCallExpr(on(cxxThisExpr()), callee(functionDecl(hasName("shared_from_this")))).bind("bad_call_shared_from_this"))).bind("bad_constructor")
+
+// formated:
+match cxxConstructorDecl(hasDescendant(
+    cxxMemberCallExpr(
+      on(cxxThisExpr()),
+      callee(functionDecl(hasName("shared_from_this")))
+    ).bind("bad_call_shared_from_this")
+  )).bind("bad_constructor")
+```
+
+run with
+```bash
+/opt/homebrew/opt/llvm@14/bin/clang-query test/input_shared_from_this_in_cons.cpp  -p build/compile_commands.json
+```
